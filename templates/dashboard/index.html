@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>ParkMeNow - Parqueos en Santo Domingo</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f6f8; }
+        nav { background-color: #111827; color: white; padding: 1rem; display: flex; justify-content: center; }
+        nav h1 { margin: 0; font-size: 2rem; }
+        #map { height: 400px; margin: 1rem; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .parking-list { display: flex; flex-wrap: wrap; justify-content: center; margin: 1rem; }
+        .card { border-radius: 12px; padding: 1rem; margin: 0.5rem; width: 250px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        .available { background-color: #d1fae5; }
+        .occupied { background-color: #fee2e2; }
+        .card h3 { margin-top: 0; }
+        .card button { margin-top: 10px; padding: 8px 12px; border: none; border-radius: 6px; background-color: #007BFF; color: white; cursor: pointer; }
+        .card button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <nav>
+        <h1>ParkMeNow</h1>
+    </nav>
+
+    <div id="map"></div>
+
+    <div class="parking-list" id="parking-list"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Datos de parqueos (puedes expandirlos)
+        const parkings = [
+            { name: "Parking Zona Colonial", status: "Disponible", price: 50, coords: [18.4719, -69.8829] },
+            { name: "Parking Downtown", status: "Disponible", price: 60, coords: [18.4800, -69.9400] },
+            { name: "Parking Malecón", status: "Ocupado", price: 45, coords: [18.4700, -69.9000] }
+        ];
+
+        // Crear mapa
+        const map = L.map('map').setView([18.4861, -69.9312], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Agregar marcadores
+        parkings.forEach(p => {
+            L.marker(p.coords).addTo(map)
+                .bindPopup(`<strong>${p.name}</strong><br>Estado: ${p.status}<br>Precio: $${p.price}/h`);
+        });
+
+        // Crear tarjetas de parqueos
+        const listDiv = document.getElementById("parking-list");
+        parkings.forEach(p => {
+            const card = document.createElement("div");
+            card.className = `card ${p.status === "Disponible" ? "available" : "occupied"}`;
+            card.innerHTML = `
+                <h3>${p.name}</h3>
+                <p>Estado: <strong>${p.status}</strong></p>
+                <p>Precio: $${p.price}/hora</p>
+            `;
+            if (p.status === "Disponible") {
+                const btn = document.createElement("button");
+                btn.textContent = "Reservar";
+                btn.onclick = () => {
+                    p.status = "Ocupado";
+                    alert(`Has reservado ${p.name}`);
+                    card.className = "card occupied";
+                    card.querySelector("p").innerHTML = `Estado: <strong>${p.status}</strong>`;
+                };
+                card.appendChild(btn);
+            }
+            listDiv.appendChild(card);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+from django.shortcuts import render, redirect
+from django.views import View
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from .models import ParkingLocation, Reservation
+from .forms import ReservationForm
+from datetime import datetime
+
+class HomeView(View):
+    """
+    Vista principal que muestra la lista de aparcamientos disponibles
+    y sirve como página de inicio.
+    """
+    def get(self, request):
+        parkings = ParkingLocation.objects.all()
+        
+        # RUTA CORREGIDA: Usa el nombre de la plantilla simple 
+        # (funciona porque el archivo ahora está en dashboard/templates/project_list.html)
+        # y tu settings.py ya tiene ALLOWED_HOSTS configurado.
+        return render(request, "dashboard/project_list.html", {"parkings": parkings})
+
+@method_decorator(login_required, name='dispatch')
+class CreateReservationView(View):
+    """
+    Vista para crear una nueva reserva. Requiere que el usuario esté autenticado.
+    """
+    def get(self, request):
+        form = ReservationForm()
+        # Ruta simple: dashboard/reservation_form.html
+        return render(request, "dashboard/reservation_form.html", {"form": form})
+
+    def post(self, request):
+        form = ReservationForm(request.POST)
+        if form.is_valid():
+            reservation = form.save(commit=False)
+            reservation.user = request.user
+
+            # Validamos disponibilidad
+            overlaps = Reservation.objects.filter(
+                parking_location=reservation.parking_location,
+                end_time__gte=reservation.start_time,
+                start_time__lte=reservation.end_time
+            )
+            if overlaps.exists():
+                # Añadir un error al formulario si hay superposición
+                form.add_error(None, "El estacionamiento no está disponible en ese horario.")
+                return render(request, "dashboard/reservation_form.html", {"form": form})
+
+            reservation.save()
+            return redirect("home")
+            
+        # Vuelve a renderizar el formulario si no es válido
+        return render(request, "dashboard/reservation_form.html", {"form": form})

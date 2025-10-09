@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="bg-white rounded shadow-lg p-6">
+    <h1 class="text-2xl font-bold mb-4">{{ project.name }}</h1>
+    <p class="mb-2"><strong>Descripción:</strong> {{ project.description }}</p>
+    <p class="mb-2"><strong>Estado:</strong> {{ project.status }}</p>
+    <p class="mb-4"><strong>Fecha Límite:</strong> {{ project.due_date }}</p>
+    <a href="{% url 'project-update' project.pk %}" class="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600">Editar</a>
+    <a href="{% url 'project-list' %}" class="bg-gray-500 text-white px-4 py-2 rounded shadow hover:bg-gray-600">Volver</a>
+</div>
+{% endblock %}
